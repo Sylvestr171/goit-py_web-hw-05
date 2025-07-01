@@ -14,8 +14,8 @@ from urllib.parse import urlencode
 
 def urls(number_of_days :int) -> list[str]:
     
-    today = date.today() #.strftime("%d.%m.%y")
-    urls = []
+    today = date.today()
+    urls = ['https://api.privatbank.ua/p24api/exchange_rates?json=&date=01.07.25']
     i = 0
     while i != number_of_days:
 
@@ -27,23 +27,20 @@ def urls(number_of_days :int) -> list[str]:
     print(urls)
     return urls
 
+async def get_response (session, url):
+    async with session.get(url) as resp:
 
-
+        print("Status:", resp.status)
+        print('Cookies: ', resp.cookies)
+        print(resp.ok)
+        result_of_response = await resp.json()
+        return result_of_response
 
 async def main(list_of_url):
-    
+    result=[]
     async with aiohttp.ClientSession() as session:
-        result=[]
-        for url in list_of_url:
-            print(url)
-            async with session.get(url) as response:
-
-                print("Status:", response.status)
-                print("Content-type:", response.headers['content-type'])
-                print('Cookies: ', response.cookies)
-                print(response.ok)
-                result_of_response = await response.json()
-                result.append(result_of_response)
+        task = [get_response(session,url) for url in list_of_url]
+        result=await asyncio.gather(*task, return_exceptions=True)
         return result
 
 
@@ -52,4 +49,7 @@ if __name__ == "__main__":
     if platform.system() == 'Windows':
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     r = asyncio.run(main(urls(3)))
-    print(r)
+    print(f"-------------------------------------\n {r}\n---------------------------------------------------------")
+    for i in r:
+        print(i)
+    
