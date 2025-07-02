@@ -33,7 +33,7 @@ async def filtering_data(data, list_of_currency_in_f_d):
     
     filter_data = {}
     for i in data:
-        if isinstance(i, Exception): #обробка помилок
+        if isinstance(i, Exception):
             continue
         date_key = i['date']
         currency_dict = {}
