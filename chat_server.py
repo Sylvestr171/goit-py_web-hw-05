@@ -39,23 +39,26 @@ class Server:
 
     async def distrubute(self, ws: WebSocketServerProtocol):
         async for message in ws:
-            if message.split()[0] == "exchange":
-                if len(message.split()) > 1:
-                    if message.split()[1].isdigit():
-                        number_of_days = int(message.split()[1])
-                        exchange = str(await get_arhive_course(urls(number_of_days)))
-                        await async_log (message)
-                        await self.send_to_clients(exchange)
+            if len(message.split()) == 0:
+                await self.send_to_clients(f"{ws.name}: {message}")
+            else:
+                if message.split()[0] == "exchange":
+                    if len(message.split()) > 1:
+                        if message.split()[1].isdigit():
+                            number_of_days = int(message.split()[1])
+                            exchange = str(await get_arhive_course(urls(number_of_days)))
+                            await async_log (message)
+                            await self.send_to_clients(exchange)
+                        else:
+                            exchange = await get_exchange()
+                            await async_log (message)
+                            await self.send_to_clients(exchange)
                     else:
                         exchange = await get_exchange()
                         await async_log (message)
                         await self.send_to_clients(exchange)
                 else:
-                    exchange = await get_exchange()
-                    await async_log (message)
-                    await self.send_to_clients(exchange)
-            else:
-                await self.send_to_clients(f"{ws.name}: {message}")
+                    await self.send_to_clients(f"{ws.name}: {message}")
 
 async def async_log(message: str):
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -78,17 +81,8 @@ def urls(number_of_days :int):
         url = f"https://api.privatbank.ua/p24api/exchange_rates?{urlencode(params)}"
         i = i + 1
         urls.append(url)
-    print(urls)
+    # print(urls)
     return urls
-
-async def get_arhive_course(list_of_url):
-    result=[]
-    async with aiohttp.ClientSession() as session:
-        task = [request(url) for url in list_of_url]
-        data_from_url=await asyncio.gather(*task, return_exceptions=True)
-        print(data_from_url)
-        result = await filtering_data(data_from_url)
-        return result
 
 async def filtering_data(data):
     
@@ -105,7 +99,17 @@ async def filtering_data(data):
                 "purchase": x.get("purchaseRate")
                 }
             filter_data[date_key] = currency_dict
-    return json.dumps(filter_data)
+        # print(f">>>{filter_data}")
+    return filter_data
+
+async def get_arhive_course(list_of_url):
+    result=[]
+    async with aiohttp.ClientSession() as session:
+        task = [request(url) for url in list_of_url]
+        data_from_url=await asyncio.gather(*task, return_exceptions=True)
+        # print(data_from_url)
+        result = await filtering_data(data_from_url)
+        return result
 
 async def request(url: str) -> dict | str:
     async with aiohttp.ClientSession() as session:
