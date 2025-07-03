@@ -64,8 +64,7 @@ async def main(params):
         result = await filtering_data(data_from_url, list_of_currency_in_main)
         return result
 
-if __name__ == "__main__":
-    
+def parser_of_param():
     parser = argparse.ArgumentParser()
     parser.add_argument('a', type=int)
     parser.add_argument('-currency', type=str, help="-currency CHF")
@@ -77,10 +76,18 @@ if __name__ == "__main__":
         function_param = 1
     elif function_param > 10:
         function_param = 10
-    
+
+    return function_param, list_of_currency
+
+if __name__ == "__main__":
+        
+    function_params=parser_of_param()
+    days_of_arkhiv=function_params[0]
+    list_of_currency=function_params[1]
+
     if platform.system() == 'Windows':
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-    r = asyncio.run(main(urls(function_param, list_of_currency)))
+    r = asyncio.run(main(urls(days_of_arkhiv, list_of_currency)))
     
     print(json.dumps(r, indent=2, ensure_ascii=False))   
     # parse_data(r)

@@ -24,7 +24,7 @@ def urls(number_of_days :int, list_of_currency_in_urls):
 async def get_response (session, url):
     async with session.get(url) as resp:
         # print("Status:", resp.status)
-        # print('Cookies: ', resp.cookies)
+        # # print('Cookies: ', resp.cookies)
         # print(resp.ok)
         result_of_response = await resp.json()
         return result_of_response
